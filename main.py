@@ -149,12 +149,7 @@ def clear_slots():
 def click_loop():
     global running
 
-    try:
-        cps = float(cps_var.get())
-    except ValueError:
-        cps = 10
-    cps = max(0.1, cps)
-    delay = 1.0 / cps
+    delay = max(0.0, _interval_seconds())
 
     mode = mode_var.get()
 
@@ -329,7 +324,9 @@ def reset_hotkeys():
 
 
 def persist_config():
-    cfg["cps"] = cps_var.get()
+    cfg["interval_minutes"] = interval_minutes_var.get()
+    cfg["interval_seconds"] = interval_seconds_var.get()
+    cfg["interval_milliseconds"] = interval_ms_var.get()
     cfg["mode"] = mode_var.get()
     cfg["amount"] = amount_var.get()
     cfg["duration_seconds"] = duration_var.get()
@@ -379,16 +376,65 @@ notebook.add(hotkeys_tab, text="  Hotkeys & Settings  ")
 # ---------- Clicker tab ----------
 
 ttk.Label(clicker_tab, text="Click Speed", style="Heading.TLabel").pack(anchor="w")
+ttk.Label(
+    clicker_tab,
+    text="Delay between clicks. Fill in only the fields you need; the rest default to 0.",
+    bootstyle="secondary",
+    wraplength=600,
+).pack(anchor="w", pady=(2, 8))
 
 speed_row = ttk.Frame(clicker_tab)
-speed_row.pack(fill="x", pady=(8, 18))
+speed_row.pack(fill="x", pady=(0, 4))
 
-ttk.Label(speed_row, text="Clicks per second").pack(side="left")
+interval_minutes_var = tk.StringVar(value=str(cfg.get("interval_minutes", 0)))
+interval_seconds_var = tk.StringVar(value=str(cfg.get("interval_seconds", 0)))
+interval_ms_var = tk.StringVar(value=str(cfg.get("interval_milliseconds", 100)))
 
-cps_var = tk.StringVar(value=str(cfg.get("cps", 10)))
-ttk.Entry(speed_row, textvariable=cps_var, width=10, bootstyle="primary").pack(
-    side="right"
+for label_text, var in (
+    ("Minutes", interval_minutes_var),
+    ("Seconds", interval_seconds_var),
+    ("Milliseconds", interval_ms_var),
+):
+    field = ttk.Frame(speed_row)
+    field.pack(side="left", padx=(0, 16))
+    ttk.Label(field, text=label_text, bootstyle="secondary").pack(anchor="w")
+    ttk.Entry(field, textvariable=var, width=10, bootstyle="primary").pack(anchor="w")
+
+speed_rate_var = tk.StringVar()
+ttk.Label(clicker_tab, textvariable=speed_rate_var, bootstyle="secondary").pack(
+    anchor="w", pady=(4, 18)
 )
+
+
+def _interval_seconds() -> float:
+    total = 0.0
+
+    for var, unit in (
+        (interval_minutes_var, 60.0),
+        (interval_seconds_var, 1.0),
+        (interval_ms_var, 1.0 / 1000.0),
+    ):
+        try:
+            total += max(0.0, float(var.get())) * unit
+        except ValueError:
+            pass
+
+    return total
+
+
+def _update_speed_rate(*_):
+    interval = _interval_seconds()
+
+    if interval <= 0:
+        speed_rate_var.set("As fast as possible (no delay)")
+    else:
+        speed_rate_var.set(f"≈ {1.0 / interval:.2f} clicks/second (every {interval:.3f}s)")
+
+
+for var in (interval_minutes_var, interval_seconds_var, interval_ms_var):
+    var.trace_add("write", _update_speed_rate)
+
+_update_speed_rate()
 
 ttk.Label(clicker_tab, text="Run Mode", style="Heading.TLabel").pack(anchor="w")
 

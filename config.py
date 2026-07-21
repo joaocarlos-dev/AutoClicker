@@ -19,7 +19,9 @@ DEFAULT_HOTKEYS = {
 }
 
 DEFAULTS = {
-    "cps": 10.0,
+    "interval_minutes": 0.0,
+    "interval_seconds": 0.0,
+    "interval_milliseconds": 100.0,
     "mode": "infinite",          # "infinite" | "amount" | "duration"
     "amount": 100,               # total clicks when mode == "amount"
     "duration_seconds": 60.0,    # run time when mode == "duration"
@@ -60,6 +62,19 @@ def load() -> dict:
                 saved = json.load(f)
 
             data.update({k: v for k, v in saved.items() if k in DEFAULTS})
+
+            # migrate old single-field "clicks per second" configs
+            if "interval_minutes" not in saved and "cps" in saved:
+                try:
+                    cps = float(saved["cps"])
+                    total_seconds = 1.0 / cps if cps > 0 else 0.0
+                except (TypeError, ValueError):
+                    total_seconds = 0.1
+
+                minutes, remainder = divmod(total_seconds, 60)
+                data["interval_minutes"] = minutes
+                data["interval_seconds"] = int(remainder)
+                data["interval_milliseconds"] = round((remainder - int(remainder)) * 1000)
 
             if isinstance(saved.get("hotkeys"), dict):
                 merged_hotkeys = dict(DEFAULT_HOTKEYS)

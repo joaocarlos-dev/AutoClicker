@@ -20,17 +20,22 @@ python main.py
 
 ## Usage
 
-- **Clicker tab**: set clicks-per-second, pick a run mode (infinite / fixed
-  amount / fixed duration), then click **Add Slot** and click anywhere on
-  screen to record that point. Add as many slots as you want; the clicker
-  cycles through all of them each pass. Select one or more entries and hit
-  **Remove Selected Slot(s)**, or **Clear All Slots** to start over.
+- **Clicker tab**: set the click speed as a delay between clicks, using
+  minutes, seconds, and/or milliseconds fields — fill in only the ones you
+  need, the rest default to 0 (e.g. leave minutes/seconds blank and set
+  milliseconds to 100 for 10 clicks/second, or set minutes to 5 for one
+  click every 5 minutes). A live label shows the resulting rate. Then pick a
+  run mode (infinite / fixed amount / fixed duration), click **Add Slot**,
+  and click anywhere on screen to record that point. Add as many slots as
+  you want; the clicker cycles through all of them each pass. Select one or
+  more entries and hit **Remove Selected Slot(s)**, or **Clear All Slots**
+  to start over.
 - **Hotkeys & Settings tab**: click **Set...** next to any action and press
   the key combo you want (e.g. `F6` or `Ctrl+Alt+P`), then **Save Hotkeys**.
   This tab also shows which backends are active for your system and any
   warnings about missing permissions/tools.
 
-Settings (CPS, run mode, slots, hotkeys) are saved on close to:
+Settings (click speed, run mode, slots, hotkeys) are saved on close to:
 - Linux: `~/.config/autoclicker/config.json`
 - Windows: `%APPDATA%\AutoClicker\config.json`
 
